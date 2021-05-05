@@ -29,15 +29,10 @@ bool Sphere::Hit(const Ray& ray, HitRecord *hit_record) const {
     }
 
     if (ret) {
-        float magnitude = glm::sqrt((intersection[0] * intersection[0]) +
-                (intersection[1] * intersection[1]) +
-                (intersection[2] * intersection[2]));
-        hit_record->normal[0] = intersection[0] / magnitude;
-        hit_record->normal[1] = intersection[1] / magnitude;
-        hit_record->normal[2] = intersection[2] / magnitude;
+        hit_record->normal = glm::normalize(intersection - o_);
         hit_record->in_direction = ray.d;
         // Lecture note 8, P.11
-        hit_record->reflection = ((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection);
+        hit_record->reflection = glm::normalize(((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection));
         hit_record->position = intersection;
         hit_record->distance = t;
         hit_record->material = material_;
@@ -85,15 +80,12 @@ bool Quadric::Hit(const Ray& ray, HitRecord *hit_record) const {
     }
 
     if (ret) {
-        float magnitude = glm::sqrt((intersection[0] * intersection[0]) +
-                                    (intersection[1] * intersection[1]) +
-                                    (intersection[2] * intersection[2]));
-        hit_record->normal[0] = intersection[0] / magnitude;
-        hit_record->normal[1] = intersection[1] / magnitude;
-        hit_record->normal[2] = intersection[2] / magnitude;
+        glm::mat4x4 temp_A = A_ + glm::transpose(A_);
+        glm::vec4 temp_inter = glm::vec4( intersection, 1.0 );
+        hit_record->normal = glm::normalize(temp_A * temp_inter);
         hit_record->in_direction = ray.d;
         // Lecture note 8, P.11
-        hit_record->reflection = ((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection);
+        hit_record->reflection = glm::normalize(((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection));
         hit_record->position = intersection;
         hit_record->distance = t;
         hit_record->material = material_;
@@ -149,7 +141,7 @@ bool Triangle::Hit(const Ray& ray, HitRecord *hit_record) const {
     if (ret) {
         hit_record->in_direction = ray.d;
         // Lecture note 8, P.11
-        hit_record->reflection = ((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection);
+        hit_record->reflection = glm::normalize(((2 * glm::dot(ray.o - intersection, hit_record->normal)) * hit_record->normal) - (ray.o - intersection));
         hit_record->position = intersection;
         hit_record->distance = t;
         if (phong_interpolation_) {

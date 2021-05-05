@@ -26,14 +26,13 @@ Color Shade(const std::vector<LightSource>& light_sources,
     color = hit_record.material.ambient;
 
     for(const auto& light_source : light_sources) {
-        glm::vec3 shadow_ray;
-        for (int i = 0; i < 3; i++) {
-            shadow_ray[i] = light_source.position[i] - hit_record.position[i];
-        }
+        glm::vec3 shadow_ray = light_source.position - hit_record.position;
         if (glm::dot(hit_record.normal, shadow_ray) > 0) {
-//            if (hittable_collection.Hit(shadow_ray, &hit_record) == false) {
+            HitRecord h2;
+            hittable_collection.Hit(shadow_ray, &h2);
+//            if (h2.distance >= hit_record.distance) {
                 Color diffuse = (hit_record.material.k_d * hit_record.material.diffuse)
-                                * glm::dot(hit_record.normal, shadow_ray);
+                                * glm::dot(hit_record.normal, glm::normalize(shadow_ray));
                 glm::vec3 out_direction;
                 for (int i = 0; i < 3; i++) {
                     out_direction[i] = hit_record.in_direction[i] * -1.0;
@@ -45,10 +44,7 @@ Color Shade(const std::vector<LightSource>& light_sources,
         }
     }
     if (trace_depth < kMaxTraceDepth) {
-        glm::vec3 reflected_ray;
-        for (int i = 0; i < 3; i++) {
-            reflected_ray[i] = hit_record.position[i] + hit_record.reflection[i];
-        }
+        glm::vec3 reflected_ray = hit_record.position + hit_record.reflection;
 //        if (hit_record.material.k_a > 0) {
 //            Color r_color = TraceRay(reflected_ray, light_sources, hittable_collection, trace_depth+1);
 //            color += r_color * hit_record.material.k_a;
@@ -94,7 +90,7 @@ int main() {
 
 
     // Construct scene
-    Scene scene(work_dir, "scene/sphere.toml");
+    Scene scene(work_dir, "scene/spheres.toml");
     const Camera& camera = scene.camera_;
     int width = camera.width_;
     int height = camera.height_;
