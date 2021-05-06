@@ -29,8 +29,15 @@ Color Shade(const std::vector<LightSource>& light_sources,
         glm::vec3 shadow_ray = light_source.position - hit_record.position;
         if (glm::dot(hit_record.normal, shadow_ray) > 0) {
             HitRecord h2;
-            hittable_collection.Hit(shadow_ray, &h2);
+
+//            hittable_collection.Hit(shadow_ray, &h2);
+            Ray temp_ray (hit_record.position, glm::normalize(shadow_ray));
+//            hittable_collection.Hit(temp_ray, &h2);
+
+//            if (hittable_collection.Hit(shadow_ray, &h2) == false) {
+            if (hittable_collection.Hit(temp_ray, &h2) == false) {
 //            if (h2.distance >= hit_record.distance) {
+
                 Color diffuse = (hit_record.material.k_d * hit_record.material.diffuse)
                                 * glm::dot(hit_record.normal, glm::normalize(shadow_ray));
                 glm::vec3 out_direction;
@@ -40,11 +47,12 @@ Color Shade(const std::vector<LightSource>& light_sources,
                 Color specular = (hit_record.material.k_s * hit_record.material.specular)
                                 * glm::pow((glm::dot(hit_record.reflection, out_direction)), hit_record.material.sh);
                 color += light_source.intensity * (diffuse + specular);
-//            }
+            }
         }
     }
     if (trace_depth < kMaxTraceDepth) {
-        glm::vec3 reflected_ray = hit_record.position + hit_record.reflection;
+//        glm::vec3 reflected_ray = hit_record.position + hit_record.reflection;
+        Ray reflected_ray(hit_record.position, hit_record.reflection);
 //        if (hit_record.material.k_a > 0) {
 //            Color r_color = TraceRay(reflected_ray, light_sources, hittable_collection, trace_depth+1);
 //            color += r_color * hit_record.material.k_a;
@@ -90,7 +98,7 @@ int main() {
 
 
     // Construct scene
-    Scene scene(work_dir, "scene/spheres.toml");
+    Scene scene(work_dir, "scene/teapot.toml");
     const Camera& camera = scene.camera_;
     int width = camera.width_;
     int height = camera.height_;
